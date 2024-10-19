@@ -1,0 +1,118 @@
+AWSTemplateFormatVersion: 12-09-2024
+Description: Basic CFT Template for creating a VPC with 2 subnets and 2 ec2
+  instances with security groups and bastion host.
+
+Parameters:
+  #This block defines the parameters that can be passed to the CFT.
+  VPCCIDR:
+    Type: String
+    Default: 10.0.0.0/16 #This contains 65536 IP addresses and more than enough for this example.
+
+  PbSubnet1:
+    Type: String
+    Default: 10.0.1.0/24 #Cidr block for the public subnet 1
+
+  PriSubnet1:
+    Type: String
+    Default: 10.0.2.0/24 #Cidr block for the private subnet 1
+
+Resources:
+  ec2_VPC_cft:
+    #This block defines the VPC Parameters of the ec2 instance.
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR #Parameter reference to the VPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostName: true
+      Tags:
+        - Key: Name
+          Value: Ec2-cft-vpc
+
+  PublicSubnet1_cft:
+    Type: AWS::EC2::Subnet #Public Subnet Configuration
+    Properties:
+      VpcId: !Ref ec2_VPC_cft
+      CidrBlock: !Ref pbSubnet1
+      AvalabilityZone: !Select [ 0, !GetAZs ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PubicSubenet1
+
+  PrivateSubnet_cft1:
+    Type: AWS::EC2::Subnet #Private Subnet Configuration
+    Properties:
+      VpcId: !Ref ec2_VPC_cft
+      Cidrblock: !Ref PriSubnet1
+      MapPublicIpOnLaunch: false
+      AvalabilityZone: !Select [ 0, !GetAZs ]
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet1
+
+  NatGatewayEIP_cft: #Elastic IP for the NAT Gateway
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  AttachNatGateway_cft: #NAT Gateway Configuration
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP_cft. AllocationId
+      SubnetId: !Ref PublicSubnet1_cft
+
+  Igw_ec2_cft: #Internet Gateway Configuration
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Ec2-cft-IGW
+
+  IgwAttachment_ec2_cft: #Internet Gateway Attachment
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref ec2_VPC_cft
+      InterGatewayId: !Ref Igw_ec2_cft
+
+  Public_rt_ec2_cft: #Public Route Table Configuration
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ec2_VPC_cft
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable_cft
+
+  Public_rt_Default: #Default Route Configuration Public
+    Type: AWS::EC2::Route
+    DependsOn: IgwAttachment_ec2_cft
+    Properties:
+      RoureTableId: !Ref Public_rt_ec2_cft
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref Igw_ec2_cft
+
+  AssocPublicSubnet1_ec2_cft: #Public Subnet Association
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubenetId: !Ref PublicSubnet1_cft
+      RouteTableId: !Ref Public_rt_ec2_cft
+
+  Private_rt_ec2_cft: #Private Route Table Configuration
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref ec2_VPC_cft
+      Tags:
+        - Key: Name
+          Value: Private_rt_ec2_cft
+
+  Private_rt_Default: #Default Route Configuration Private
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref Private_rt_ec2_cft
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref AttachNatGateway_cft
+      
+  AssocPrivateSubnet1_ec2_cft: #Private Subnet Association
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1_cft
+      RouteTableId: !Ref Private_rt_ec2_cft  
