@@ -1,4 +1,3 @@
-AWSTemplateFormatVersion: 12-09-2024
 Description: Basic CFT Template for creating a VPC with 2 subnets and 2 ec2
   instances with security groups and bastion host.
 
@@ -17,32 +16,32 @@ Parameters:
     Default: 10.0.2.0/24 #Cidr block for the private subnet 1
 
 Resources:
-  ec2_VPC_cft:
+  ec2VPCcft:
     #This block defines the VPC Parameters of the ec2 instance.
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: !Ref VPCCIDR #Parameter reference to the VPCCIDR
       EnableDnsSupport: true
-      EnableDnsHostName: true
+      EnableDnsHostnames: true
       Tags:
         - Key: Name
           Value: Ec2-cft-vpc
 
-  PublicSubnet1_cft:
+  PublicSubnet1cft:
     Type: AWS::EC2::Subnet #Public Subnet Configuration
     Properties:
-      VpcId: !Ref ec2_VPC_cft
-      CidrBlock: !Ref pbSubnet1
+      VpcId: !Ref ec2VPCcft
+      CidrBlock: !Ref PbSubnet1
       AvalabilityZone: !Select [ 0, !GetAZs ]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: PubicSubenet1
 
-  PrivateSubnet_cft1:
+  PrivateSubnet1cft:
     Type: AWS::EC2::Subnet #Private Subnet Configuration
     Properties:
-      VpcId: !Ref ec2_VPC_cft
+      VpcId: !Ref ec2VPCcft
       Cidrblock: !Ref PriSubnet1
       MapPublicIpOnLaunch: false
       AvalabilityZone: !Select [ 0, !GetAZs ]
@@ -50,69 +49,69 @@ Resources:
         - Key: Name
           Value: PrivateSubnet1
 
-  NatGatewayEIP_cft: #Elastic IP for the NAT Gateway
+  NatGatewayEIPcft: #Elastic IP for the NAT Gateway
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
 
-  AttachNatGateway_cft: #NAT Gateway Configuration
+  AttachNatGatewaycft: #NAT Gateway Configuration
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt NatGatewayEIP_cft. AllocationId
-      SubnetId: !Ref PublicSubnet1_cft
+      AllocationId: !GetAtt NatGatewayEIPcft. AllocationId
+      SubnetId: !Ref PublicSubnet1cft
 
-  Igw_ec2_cft: #Internet Gateway Configuration
+  Igwec2cft: #Internet Gateway Configuration
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
           Value: Ec2-cft-IGW
 
-  IgwAttachment_ec2_cft: #Internet Gateway Attachment
+  IgwAttachmentec2cft: #Internet Gateway Attachment
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref ec2_VPC_cft
-      InterGatewayId: !Ref Igw_ec2_cft
+      VpcId: !Ref ec2VPCcft
+      InterGatewayId: !Ref Igwec2cft
 
-  Public_rt_ec2_cft: #Public Route Table Configuration
+  Publicrtec2cft: #Public Route Table Configuration
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref ec2_VPC_cft
+      VpcId: !Ref ec2VPCcft
       Tags:
         - Key: Name
           Value: PublicRouteTable_cft
 
-  Public_rt_Default: #Default Route Configuration Public
+  PublicrtDefault: #Default Route Configuration Public
     Type: AWS::EC2::Route
-    DependsOn: IgwAttachment_ec2_cft
+    DependsOn: IgwAttachmentec2cft
     Properties:
-      RoureTableId: !Ref Public_rt_ec2_cft
+      RouteTableId: !Ref Publicrtec2cft
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref Igw_ec2_cft
+      GatewayId: !Ref Igwec2cft
 
-  AssocPublicSubnet1_ec2_cft: #Public Subnet Association
+  AssocPublicSubnet1ec2cft: #Public Subnet Association
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubenetId: !Ref PublicSubnet1_cft
-      RouteTableId: !Ref Public_rt_ec2_cft
+      SubnetId: !Ref PublicSubnet1cft
+      RouteTableId: !Ref Publicrtec2cft
 
-  Private_rt_ec2_cft: #Private Route Table Configuration
+  Privatertec2cft: #Private Route Table Configuration
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref ec2_VPC_cft
+      VpcId: !Ref ec2VPCcft
       Tags:
         - Key: Name
-          Value: Private_rt_ec2_cft
+          Value: Privatertec2cft
 
-  Private_rt_Default: #Default Route Configuration Private
+  PrivatertDefault: #Default Route Configuration Private
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref Private_rt_ec2_cft
+      RouteTableId: !Ref Privatertec2cft
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref AttachNatGateway_cft
-      
-  AssocPrivateSubnet1_ec2_cft: #Private Subnet Association
+      NatGatewayId: !Ref AttachNatGatewaycft
+
+  AssocPrivateSubnet1ec2cft: #Private Subnet Association
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PrivateSubnet1_cft
-      RouteTableId: !Ref Private_rt_ec2_cft  
+      SubnetId: !Ref PrivateSubnet1cft
+      RouteTableId: !Ref Privatertec2cft
