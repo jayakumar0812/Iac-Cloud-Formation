@@ -1,0 +1,47 @@
+Resources:
+  Publicec2cftsg: #Security Group Configuration
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for Public EC2 Instance 1
+      VpcId: !Ref ec2VPCcft
+      SecurityGroupIngress: #Ingress Rules to allow traffic from the specified ports
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+          Tags:
+            - Key: Name
+              Value: Publicec2cftsg
+
+  Jumpboxec2cftsg: #Security Group Configuration
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for Jumpbox EC2 Instance
+      VpcId: !Ref ec2VPCcft
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+          Tags:
+            - Key: Name
+              Value: Jumpboxec2cftsg
+  
+  Privateec2cftsg: #Security Group Configuration
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for Private EC2 Instance
+      VPCId: !Ref ec2VPCcft
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          SourceSecurityGroupId: !Ref Jumpboxec2cftsg

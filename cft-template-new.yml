@@ -1,8 +1,7 @@
 Description: Basic CFT Template for creating a VPC with 2 subnets and 2 ec2
   instances with security groups and bastion host.
 
-Parameters:
-  #This block defines the parameters that can be passed to the CFT.
+Parameters: #This block defines the parameters that can be passed to the CFT.
   VPCCIDR:
     Type: String
     Default: 10.0.0.0/16 #This contains 65536 IP addresses and more than enough for this example.
@@ -14,10 +13,26 @@ Parameters:
   PriSubnet1:
     Type: String
     Default: 10.0.2.0/24 #Cidr block for the private subnet 1
+  
+  KeyName: First_Lab #Key Pair for the EC2 instances
+  
+  InstanceTypes: #EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues: 
+      - t2.micro
+      - t2.nano
+    Description: EC2 instance type
+
+Mappings: 
+  AMIIDMap:
+    us-east-1:
+      MyAMI: ami-06b21ccaeff8cd686
+    eu-west-1:
+      MyAMI: ami-00385a401487aefa4
 
 Resources:
-  ec2VPCcft:
-    #This block defines the VPC Parameters of the ec2 instance.
+  ec2VPCcft: #This block defines the VPC Parameters of the ec2 instance.
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: !Ref VPCCIDR #Parameter reference to the VPCCIDR
@@ -115,3 +130,28 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnet1cft
       RouteTableId: !Ref Privatertec2cft
+  
+  Publicec2cft: #Public EC2 Instance Configuration
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceTypes #Parameter reference to the InstanceTypes
+      ImageId: !FindInMap [ AMIIDMap, !Ref "AWS::Region", MyAMI ]
+      SubnetId: !Ref PublicSubnet1cft
+      SecurityGroupIds:
+        - !Ref Publicec2cftsg
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: Publicec2cftinstance
+  Privateec2cft: #Private EC2 Instance Configuration
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceTypes #Parameter reference to the InstanceTypes
+      ImageId: !FindInMap [ AMIIDMap, !Ref "AWS::Region", MyAMI ]
+      SubnetId: !Ref PrivateSubnet1cft
+      SecurityGroupIds:
+        - !Ref Privateec2cftsg
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: Privateec2cftinstance
