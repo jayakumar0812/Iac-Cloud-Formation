@@ -14,7 +14,9 @@ Parameters: #This block defines the parameters that can be passed to the CFT.
     Type: String
     Default: 10.0.2.0/24 #Cidr block for the private subnet 1
   
-  KeyName: First_Lab #Key Pair for the EC2 instances
+  KeyName: 
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: First_Lab #Key Pair for the EC2 instances
   
   InstanceTypes: #EC2 instance type
     Type: String
@@ -47,7 +49,7 @@ Resources:
     Properties:
       VpcId: !Ref ec2VPCcft
       CidrBlock: !Ref PbSubnet1
-      AvalabilityZone: !Select [ 0, !GetAZs ]
+      AvailabilityZone: !Select [ 0, !GetAZs ]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -57,9 +59,9 @@ Resources:
     Type: AWS::EC2::Subnet #Private Subnet Configuration
     Properties:
       VpcId: !Ref ec2VPCcft
-      Cidrblock: !Ref PriSubnet1
+      CidrBlock: !Ref PriSubnet1
       MapPublicIpOnLaunch: false
-      AvalabilityZone: !Select [ 0, !GetAZs ]
+      AvailabilityZone: !Select [ 0, !GetAZs ]
       Tags:
         - Key: Name
           Value: PrivateSubnet1
@@ -72,7 +74,7 @@ Resources:
   AttachNatGatewaycft: #NAT Gateway Configuration
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt NatGatewayEIPcft. AllocationId
+      AllocationId: !GetAtt NatGatewayEIPcft.AllocationId
       SubnetId: !Ref PublicSubnet1cft
 
   Igwec2cft: #Internet Gateway Configuration
@@ -86,7 +88,7 @@ Resources:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref ec2VPCcft
-      InterGatewayId: !Ref Igwec2cft
+      InternetGatewayId: !Ref Igwec2cft
 
   Publicrtec2cft: #Public Route Table Configuration
     Type: AWS::EC2::RouteTable
@@ -143,6 +145,7 @@ Resources:
       Tags:
         - Key: Name
           Value: Publicec2cftinstance
+
   Privateec2cft: #Private EC2 Instance Configuration
     Type: AWS::EC2::Instance
     Properties:
@@ -155,3 +158,16 @@ Resources:
       Tags:
         - Key: Name
           Value: Privateec2cftinstance
+          
+  Jumpboxec2cft: #Jumpbox EC2 Instance Configuration
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceTypes #Parameter reference to the InstanceTypes
+      ImageId: !FindInMap [ AMIIDMap, !Ref "AWS::Region", MyAMI ]
+      SubnetId: !Ref PublicSubnet1cft
+      SecurityGroupIds:
+        - !Ref Jumpboxec2cftsg
+      KeyName: !Ref KeyName
+      Tags:
+        - Key: Name
+          Value: Jumpboxec2cftinstance
