@@ -66,17 +66,6 @@ Resources:
         - Key: Name
           Value: PrivateSubnet1
 
-  NatGatewayEIPcft: #Elastic IP for the NAT Gateway
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-
-  AttachNatGatewaycft: #NAT Gateway Configuration
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIPcft.AllocationId
-      SubnetId: !Ref PublicSubnet1cft
-
   Igwec2cft: #Internet Gateway Configuration
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -124,8 +113,8 @@ Resources:
     Type: AWS::EC2::Route
     Properties:
       RouteTableId: !Ref Privatertec2cft
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref AttachNatGatewaycft
+      DestinationCidrBlock: 10.0.0.0/16
+      GatewayId: local
 
   AssocPrivateSubnet1ec2cft: #Private Subnet Association
     Type: AWS::EC2::SubnetRouteTableAssociation

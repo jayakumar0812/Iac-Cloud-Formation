@@ -8,7 +8,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: 0.0.0.0/0
+          SourceSecurityGroupId: !Ref Jumpboxec2cftsg
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
@@ -28,6 +28,7 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
+
   Privateec2cftsg: #Security Group Configuration
     Type: AWS::EC2::SecurityGroup
     Properties:
