@@ -153,3 +153,42 @@ Resources:
       Tags:
         - Key: Name
           Value: Jumpboxec2cftinstance
+
+Outputs:
+  VPCID:
+    Description: VPC ID
+    Value: !Ref ec2VPCcft
+    
+  PublicInstanceIP:
+    Description: Public Instance IP Address
+    Value: !GetAtt Publicec2cft.PublicIp
+
+  PrivateInstanceIP:
+    Description: Private Instance IP Address
+    Value: !GetAtt Privateec2cft.PrivateIp
+
+  JumpboxInstanceIP:
+    Description: Jumpbox Instance IP Address
+    Value: !GetAtt Jumpboxec2cft.PublicIp
+
+  PublicSubnet1ID:
+    Description: Public Subnet 1 ID
+    Value: !Ref PublicSubnet1cft
+
+  PrivateSubnet1ID:
+    Description: Private Subnet 1 ID
+    Value: !Ref PrivateSubnet1cft
+
+  JumpboxSGID:
+    Description: Jumpbox Security Group ID
+    Value: !Ref Jumpboxec2cftsg
+
+  PublicSGID:
+    Description: Public Security Group ID
+    Value: !Ref Publicec2cftsg
+
+  PrivateSGID:
+    Description: Private Security Group ID
+    Value: !Ref Privateec2cftsg
+
+
