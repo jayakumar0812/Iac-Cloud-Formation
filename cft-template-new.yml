@@ -78,7 +78,7 @@ Resources:
     Properties:
       VpcId: !Ref ec2VPCcft
       InternetGatewayId: !Ref Igwec2cft
-
+  
   Publicrtec2cft: #Public Route Table Configuration
     Type: AWS::EC2::RouteTable
     Properties:
@@ -108,13 +108,6 @@ Resources:
       Tags:
         - Key: Name
           Value: Privatertec2cft
-
-  PrivatertDefault: #Default Route Configuration Private
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref Privatertec2cft
-      DestinationCidrBlock: 10.0.0.0/16
-      GatewayId: local
 
   AssocPrivateSubnet1ec2cft: #Private Subnet Association
     Type: AWS::EC2::SubnetRouteTableAssociation
