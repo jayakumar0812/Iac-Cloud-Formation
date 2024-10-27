@@ -33,7 +33,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security Group for Private EC2 Instance
-      VPCId: !Ref ec2VPCcft
+      VpcId: !Ref ec2VPCcft
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
